@@ -1,28 +1,24 @@
 import streamlit as st
 import pandas as pd
 
-# === Must be first ===
 st.set_page_config(page_title="BPSMUN'25 Review", layout="centered")
 
-# === Config ===
 input_file = "BPSMUN'25 Student Officers.xlsx"
 output_file = "BPSMUN25_Reviewed.xlsx"
 
-# === Load data ===
 @st.cache_data
 def load_data():
     df = pd.read_excel(input_file)
     df.columns = df.columns.str.strip()
     if 'Status' not in df.columns:
         df['Status'] = None
+    df = df.sample(frac=1, random_state=42).reset_index(drop=True)
     return df
 
 df = load_data()
 
-# === App UI ===
 st.title("📋 BPSMUN'25 Student Officer Review")
 
-# Filter unreviewed applications
 unreviewed = df[df['Status'].isna()].reset_index(drop=True)
 
 if unreviewed.empty:
@@ -36,7 +32,6 @@ else:
 
     st.subheader(f"📌 Application {i+1} of {len(unreviewed)}")
 
-    # === Basic Info ===
     with st.container():
         st.markdown(f"""
         <h2 style='color:#2C3E50;'>{app.get("Full Name", "")}</h2>
@@ -49,7 +44,6 @@ else:
 
     st.divider()
 
-    # === Preferences ===
     with st.expander("🎯 Position Preferences", expanded=True):
         st.markdown(f"""
         <ul style='font-size:17px;'>
@@ -59,20 +53,17 @@ else:
         </ul>
         """, unsafe_allow_html=True)
 
-    # === MUN Experience with count ===
     experience_text = app.get("List your prior MUN experiences (eg. conferences, awards, chairing, etc.)", "")
     mun_count = app.get("How many MUNs have you participated in?", "N/A")
 
-    with st.expander("🧭 MUN Experience", expanded=True):
+    with st.expander("🧝 MUN Experience", expanded=True):
         st.markdown(f"<p style='font-size:16px;'>{experience_text}</p>", unsafe_allow_html=True)
         st.info(f"🗂️ MUNs Participated (as entered): **{mun_count}**")
 
-    # === Why this role? ===
     why_this_role = app.get("Why do you want this role?", "Not provided")
     with st.expander("💬 Why do you want this role?", expanded=True):
         st.markdown(f"<p style='font-size:16px;'>{why_this_role}</p>", unsafe_allow_html=True)
 
-    # === Fit for role ===
     fit_for_role = app.get("What skills make you a good fit for this role?", "Not provided")
     with st.expander("🔑 Why are you a good fit?", expanded=True):
         st.markdown(f"<p style='font-size:16px;'>{fit_for_role}</p>", unsafe_allow_html=True)
@@ -80,20 +71,17 @@ else:
     upload_link = app.get("Upload any supporting certificates, works, awards, etc.", "")
     if pd.notna(upload_link) and upload_link.strip():
         with st.expander("📌 Uploaded File", expanded=False):
-            st.markdown(f"[Click to View File]({upload_link})")
+            st.markdown(f"[⬇️ Download Certificates & Awards]({upload_link})")
 
     st.divider()
 
-    # === Skills ===
     with st.expander("🛠️ Skills", expanded=False):
         st.markdown(f"<p style='font-size:16px;'>{app.get('Do you have experience in any of the following?', 'N/A')}</p>", unsafe_allow_html=True)
 
-    # === Portfolio ===
     portfolio = app.get("Share any relevant links to your work (e.g., portfolio, writing samples, designs, videos).", "")
     with st.expander("📁 Portfolio / Work Links", expanded=False):
         st.markdown(f"<p style='font-size:16px;'>{portfolio}</p>", unsafe_allow_html=True)
 
-    # === Uploaded file ===
     upload_link = app.get("Upload your CV / work (if any)", "")
     if pd.notna(upload_link) and upload_link.strip():
         with st.expander("📌 Uploaded File", expanded=False):
@@ -101,7 +89,6 @@ else:
 
     st.divider()
 
-    # === Action Buttons ===
     col1, col2, col3 = st.columns([1, 1, 1])
     with col1:
         if st.button("✅ Accept", use_container_width=True):
@@ -119,4 +106,3 @@ else:
         if st.button("➡️ Skip", use_container_width=True):
             st.session_state.index = i + 1
             st.rerun()
-
