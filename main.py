@@ -8,21 +8,21 @@ output_file = "BPSMUN25_Reviewed.xlsx"
 
 @st.cache_data
 def load_data():
-    df = pd.read_excel(input_file)
-    df.columns = df.columns.str.strip()
-    if 'Status' not in df.columns:
-        df['Status'] = None
-    df = df.sample(frac=1, random_state=42).reset_index(drop=True)
-    return df
+    original_df = pd.read_excel(input_file)
+    original_df.columns = original_df.columns.str.strip()
+    if 'Status' not in original_df.columns:
+        original_df['Status'] = None
+    return original_df
 
-df = load_data()
+original_df = load_data()
+df = original_df.sample(frac=1, random_state=42).reset_index(drop=True)
 
-st.title("📋 BPSMUN'25 Student Officer Review")
+st.title("\ud83d\udccb BPSMUN'25 Student Officer Review")
 
 unreviewed = df[df['Status'].isna()].reset_index(drop=True)
 
 if unreviewed.empty:
-    st.success("✅ All applications have been reviewed!")
+    st.success("\u2705 All applications have been reviewed!")
 else:
     i = st.session_state.get("index", 0)
     if i >= len(unreviewed):
@@ -30,7 +30,7 @@ else:
         i = 0
     app = unreviewed.iloc[i]
 
-    st.subheader(f"📌 Application {i+1} of {len(unreviewed)}")
+    st.subheader(f"\ud83d\udccc Application {i+1} of {len(unreviewed)}")
 
     with st.container():
         st.markdown(f"""
@@ -38,13 +38,13 @@ else:
         <p style='font-size:18px;'>
         <strong>Grade:</strong> {str(app.get("Grade", ""))} {str(app.get("Section", ""))}  <br>
         <strong>Admission No:</strong> {app.get("Admission Number", "")}  <br>
-        <strong>📞 Mobile:</strong> {app.get("Mobile Number", "")}
+        <strong>\ud83d\udcde Mobile:</strong> {app.get("Mobile Number", "")}
         </p>
         """, unsafe_allow_html=True)
 
     st.divider()
 
-    with st.expander("🎯 Position Preferences", expanded=True):
+    with st.expander("\ud83c\udfaf Position Preferences", expanded=True):
         st.markdown(f"""
         <ul style='font-size:17px;'>
         <li><strong>1st Preference:</strong> {app.get("First Preference", "Not Provided")}</li>
@@ -56,53 +56,57 @@ else:
     experience_text = app.get("List your prior MUN experiences (eg. conferences, awards, chairing, etc.)", "")
     mun_count = app.get("How many MUNs have you participated in?", "N/A")
 
-    with st.expander("🧝 MUN Experience", expanded=True):
+    with st.expander("\ud83e\uddd9 MUN Experience", expanded=True):
         st.markdown(f"<p style='font-size:16px;'>{experience_text}</p>", unsafe_allow_html=True)
-        st.info(f"🗂️ MUNs Participated (as entered): **{mun_count}**")
+        st.info(f"\ud83d\uddc2\ufe0f MUNs Participated (as entered): **{mun_count}**")
 
     why_this_role = app.get("Why do you want this role?", "Not provided")
-    with st.expander("💬 Why do you want this role?", expanded=True):
+    with st.expander("\ud83d\udcac Why do you want this role?", expanded=True):
         st.markdown(f"<p style='font-size:16px;'>{why_this_role}</p>", unsafe_allow_html=True)
 
     fit_for_role = app.get("What skills make you a good fit for this role?", "Not provided")
-    with st.expander("🔑 Why are you a good fit?", expanded=True):
+    with st.expander("\ud83d\udd11 Why are you a good fit?", expanded=True):
         st.markdown(f"<p style='font-size:16px;'>{fit_for_role}</p>", unsafe_allow_html=True)
 
     upload_link = app.get("Upload any supporting certificates, works, awards, etc.", "")
     if pd.notna(upload_link) and upload_link.strip():
-        with st.expander("📌 Uploaded File", expanded=False):
-            st.markdown(f"[⬇️ Download Certificates & Awards]({upload_link})")
+        with st.expander("\ud83d\udccc Uploaded File", expanded=False):
+            st.markdown(f"[\u2b07\ufe0f Download Certificates & Awards]({upload_link})")
 
     st.divider()
 
-    with st.expander("🛠️ Skills", expanded=False):
+    with st.expander("\ud83d\udee0\ufe0f Skills", expanded=False):
         st.markdown(f"<p style='font-size:16px;'>{app.get('Do you have experience in any of the following?', 'N/A')}</p>", unsafe_allow_html=True)
 
     portfolio = app.get("Share any relevant links to your work (e.g., portfolio, writing samples, designs, videos).", "")
-    with st.expander("📁 Portfolio / Work Links", expanded=False):
+    with st.expander("\ud83d\udcc1 Portfolio / Work Links", expanded=False):
         st.markdown(f"<p style='font-size:16px;'>{portfolio}</p>", unsafe_allow_html=True)
 
     upload_link = app.get("Upload your CV / work (if any)", "")
     if pd.notna(upload_link) and upload_link.strip():
-        with st.expander("📌 Uploaded File", expanded=False):
+        with st.expander("\ud83d\udccc Uploaded File", expanded=False):
             st.markdown(f"[Click to View File]({upload_link})")
 
     st.divider()
 
     col1, col2, col3 = st.columns([1, 1, 1])
+    row_index = original_df[(original_df["Admission Number"] == app["Admission Number"])].index[0]
+
     with col1:
-        if st.button("✅ Accept", use_container_width=True):
-            df.loc[df.index == app.name, 'Status'] = "Accepted"
-            df.to_excel(output_file, index=False)
+        if st.button("\u2705 Accept", use_container_width=True):
+            original_df.at[row_index, 'Status'] = "Accepted"
+            original_df.to_excel(output_file, index=False)
             st.session_state.index = i + 1
             st.rerun()
+
     with col2:
-        if st.button("❌ Reject", use_container_width=True):
-            df.loc[df.index == app.name, 'Status'] = "Rejected"
-            df.to_excel(output_file, index=False)
+        if st.button("\u274c Reject", use_container_width=True):
+            original_df.at[row_index, 'Status'] = "Rejected"
+            original_df.to_excel(output_file, index=False)
             st.session_state.index = i + 1
             st.rerun()
+
     with col3:
-        if st.button("➡️ Skip", use_container_width=True):
+        if st.button("\u27a1\ufe0f Skip", use_container_width=True):
             st.session_state.index = i + 1
             st.rerun()
