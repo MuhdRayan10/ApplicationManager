@@ -14,19 +14,26 @@ def load_data():
         original_df['Status'] = None
     if 'Assigned Role' not in original_df.columns:
         original_df['Assigned Role'] = None
+    original_df["Original Index"] = original_df.index
     return original_df
 
-original_df = load_data()
-df = original_df.sample(frac=1, random_state=42).reset_index(drop=True)
+if "review_df" not in st.session_state:
+    st.session_state.review_df = load_data()
+    st.session_state.shuffled_df = st.session_state.review_df.copy()
+    st.session_state.shuffled_df = st.session_state.shuffled_df.sample(frac=1, random_state=42).reset_index(drop=True)
+    st.session_state.index = 0
+
+review_df = st.session_state.review_df
+shuffled_df = st.session_state.shuffled_df
 
 st.title("📋 BPSMUN'25 Student Officer Review")
 
-unreviewed = df[df['Status'].isna()].reset_index(drop=True)
+unreviewed = shuffled_df[shuffled_df['Status'].isna()].reset_index(drop=True)
 
 if unreviewed.empty:
     st.success("✅ All applications have been reviewed!")
 else:
-    i = st.session_state.get("index", 0)
+    i = st.session_state.index
     if i >= len(unreviewed):
         st.session_state.index = 0
         i = 0
@@ -94,24 +101,24 @@ else:
     role_input = st.text_input("🎖️ Assign Role (if accepting)", "")
 
     col1, col2, col3 = st.columns([1, 1, 1])
-    row_index = original_df[(original_df["Admission Number"] == app["Admission Number"])].index[0]
+    original_index = app["Original Index"]
 
     with col1:
         if st.button("✅ Accept", use_container_width=True):
-            original_df.at[row_index, 'Status'] = "Accepted"
-            original_df.at[row_index, 'Assigned Role'] = role_input
-            original_df.to_excel(output_file, index=False)
-            st.session_state.index = i + 1
+            st.session_state.review_df.at[original_index, 'Status'] = "Accepted"
+            st.session_state.review_df.at[original_index, 'Assigned Role'] = role_input
+            st.session_state.review_df.to_excel(output_file, index=False)
+            st.session_state.index += 1
             st.rerun()
 
     with col2:
         if st.button("❌ Reject", use_container_width=True):
-            original_df.at[row_index, 'Status'] = "Rejected"
-            original_df.to_excel(output_file, index=False)
-            st.session_state.index = i + 1
+            st.session_state.review_df.at[original_index, 'Status'] = "Rejected"
+            st.session_state.review_df.to_excel(output_file, index=False)
+            st.session_state.index += 1
             st.rerun()
 
     with col3:
         if st.button("➡️ Skip", use_container_width=True):
-            st.session_state.index = i + 1
+            st.session_state.index += 1
             st.rerun()
