@@ -1,54 +1,97 @@
 import streamlit as st
 import pandas as pd
 
-st.set_page_config(page_title="BPSMUN'25 Review", layout="centered")
+st.set_page_config(page_title="BPSMUN'25 Review", layout="wide")
 
 input_file = "BPSMUN'25 Student Officers.xlsx"
 output_file = "BPSMUN25_Reviewed.xlsx"
 
 @st.cache_data
 def load_data():
-    original_df = pd.read_excel(input_file)
-    original_df.columns = original_df.columns.str.strip()
-    if 'Status' not in original_df.columns:
-        original_df['Status'] = None
-    if 'Assigned Role' not in original_df.columns:
-        original_df['Assigned Role'] = None
-    original_df["Original Index"] = original_df.index
-    return original_df
+    df = pd.read_excel(input_file)
+    df.columns = df.columns.str.strip()
+    if 'Status' not in df.columns:
+        df['Status'] = None
+    if 'Assigned Role' not in df.columns:
+        df['Assigned Role'] = ""
+    df["Original Index"] = df.index
+    return df
 
 if "review_df" not in st.session_state:
     st.session_state.review_df = load_data()
-    st.session_state.shuffled_df = st.session_state.review_df.copy()
-    st.session_state.shuffled_df = st.session_state.shuffled_df.sample(frac=1, random_state=42).reset_index(drop=True)
+    st.session_state.shuffled_df = st.session_state.review_df.sample(frac=1, random_state=42).reset_index(drop=True)
     st.session_state.index = 0
 
 review_df = st.session_state.review_df
 shuffled_df = st.session_state.shuffled_df
 
-st.title("📋 BPSMUN'25 Student Officer Review")
+with st.container():
+    st.markdown("""
+    <div style='text-align:center;'>
+        <h1>📋 BPSMUN'25 Student Officer Review</h1>
+    </div>
+    """, unsafe_allow_html=True)
 
-unreviewed = shuffled_df[shuffled_df['Status'].isna()].reset_index(drop=True)
+    mode = st.radio("Select Mode", ["Single Review", "Multi View"], horizontal=True)
 
-if unreviewed.empty:
+unreviewed_df = shuffled_df[shuffled_df["Status"].isna()].reset_index(drop=True)
+
+if unreviewed_df.empty:
     st.success("✅ All applications have been reviewed!")
+
+elif mode == "Multi View":
+    st.subheader(f"📚 Viewing {len(unreviewed_df)} Unreviewed Applications")
+
+    updates = []
+    for idx, app in unreviewed_df.iterrows():
+        st.markdown("---")
+        st.markdown(f"**{app.get('Full Name', 'Unnamed').strip()}** — {app.get('Grade', '')} {app.get('Section', '')}")
+        st.markdown(f"Admission No: {app.get('Admission Number', '')} | 📞 {app.get('Mobile Number', '')}")
+        st.markdown(f"Preferences: {app.get('First Preference', '-')}, {app.get('Second Preference', '-')}, {app.get('Third Preference', '-')}")
+        col1, col2 = st.columns(2)
+        with col1:
+            decision = st.selectbox("Decision", ["", "Accept", "Reject"], key=f"multi_decision_{idx}")
+        with col2:
+            role = st.text_input("Assigned Role", key=f"multi_role_{idx}")
+
+        updates.append({
+            "original_idx": app["Original Index"],
+            "decision": decision,
+            "role": role
+        })
+
+    if st.button("💾 Save All Decisions"):
+        for upd in updates:
+            if upd["decision"]:
+                review_df.at[upd["original_idx"], "Status"] = "Accepted" if upd["decision"] == "Accept" else "Rejected"
+                review_df.at[upd["original_idx"], "Assigned Role"] = upd["role"]
+        review_df.to_excel(output_file, index=False)
+        st.success("✅ All decisions saved!")
+        st.rerun()
+
 else:
     i = st.session_state.index
-    if i >= len(unreviewed):
+    if i >= len(unreviewed_df):
         st.session_state.index = 0
         i = 0
-    app = unreviewed.iloc[i]
+    app = unreviewed_df.iloc[i]
 
-    st.subheader(f"📌 Application {i+1} of {len(unreviewed)}")
+    st.markdown(f"""
+    <div style='text-align:center;'>
+    <h3>📌 Application {i+1} of {len(unreviewed_df)}</h3>
+    </div>
+    """, unsafe_allow_html=True)
 
     with st.container():
         st.markdown(f"""
+        <div style='text-align:center;'>
         <h2 style='color:#2C3E50;'>{app.get("Full Name", "")}</h2>
         <p style='font-size:18px;'>
         <strong>Grade:</strong> {str(app.get("Grade", ""))} {str(app.get("Section", ""))}  <br>
         <strong>Admission No:</strong> {app.get("Admission Number", "")}  <br>
         <strong>📞 Mobile:</strong> {app.get("Mobile Number", "")}
         </p>
+        </div>
         """, unsafe_allow_html=True)
 
     st.divider()
