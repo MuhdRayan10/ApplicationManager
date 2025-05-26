@@ -74,6 +74,18 @@ else:
     if i >= len(unreviewed_df):
         st.session_state.index = 0
         i = 0
+    jump_to = st.number_input(
+    f"🔍 Jump to Application # (1 to {len(unreviewed_df)})", 
+    min_value=1, 
+    max_value=len(unreviewed_df), 
+    step=1, 
+    value=i+1, 
+    key="jump_input")
+
+    if jump_to - 1 != i:
+        st.session_state.index = jump_to - 1
+        st.rerun()
+
     app = unreviewed_df.iloc[i]
 
     st.markdown(f"""
