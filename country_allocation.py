@@ -18,18 +18,24 @@ import random
 import pandas as pd
 
 committees = ["DISEC", "SC", "WHO", "UNODC", "ECOSOC", "UNHRC"]
-country = pd.read_excel("Country Matrix.xlsx")
 
-countries = list(country.columns[1:])  
-
+countries = [
+    "United States", "France", "Germany", "China", "India", "Brazil", "Mexico", "Canada",
+    "Italy", "Spain", "Netherlands", "Sweden", "Finland", "Belgium", "Austria", "Norway",
+    "Switzerland", "Denmark", "Japan", "South Korea", "Australia", "New Zealand", "Turkey",
+    "Jordan", "Qatar", "United Arab Emirates", "South Africa", "Nigeria", "Kenya",
+    "Democratic Republic of Congo", "Uganda", "Angola", "Zambia", "Morocco", "Tunisia", "Argentina"
+]
 country_matrix = {} # committee : countries left
-for committee in committees:
-    pass
+for i, committee in enumerate(committees):
+    li = countries.copy()
+    random.shuffle(li)
+    country_matrix[committee] = li
 
-delegates_df = pd.read_excel("/mnt/data/Delegates.xlsx")
+delegates_df = pd.read_excel("Delegates.xlsx")
 
 #delegates dictionary: {Name: (Grade, Division)}
-delegates = {row['Name']: (row['Grade'], row['Division'])
+delegates = {row['First Name']: (row['Grade'], row['Section'])
     for _, row in delegates_df.iterrows()
 }
 
