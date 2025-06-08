@@ -26,7 +26,8 @@ countries = [
     "Jordan", "Qatar", "United Arab Emirates", "South Africa", "Nigeria", "Kenya",
     "Democratic Republic of Congo", "Uganda", "Angola", "Zambia", "Morocco", "Tunisia", "Argentina"
 ]
-country_matrix = {} # committee : countries left
+
+country_matrix = {}
 for i, committee in enumerate(committees):
     li = countries.copy()
     random.shuffle(li)
@@ -34,19 +35,18 @@ for i, committee in enumerate(committees):
 
 delegates_df = pd.read_excel("Delegates.xlsx")
 
-#delegates dictionary: {Name: (Grade, Division)}
 delegates = {row['First Name']: (row['Grade'], row['Section'])
-    for _, row in delegates_df.iterrows()
-}
+    for _, row in delegates_df.iterrows() if row['Confirmed']==True}
 
 def allocate_countries(delegates):
-    grade_sort = {grade: [] for grade in ['IX', 'X', 'XI', 'XII']}
+    grade_sort = {grade: [] for grade in ['VIII', 'IX', 'X', 'XI', 'XII']}
     output = []
     for delegate, class_ in delegates.items():
-        grade_sort[class_[0]].append([delegate, *class_])
+        print(class_[0])
+        grade_sort[class_[0].strip()].append([delegate, *class_])
 
     for grade in grade_sort:
-        grade_sort[grade].sort(key=lambda x: x[2])
+        grade_sort[grade.strip()].sort(key=lambda x: x[2])
 
     c = 0
     for grade in grade_sort:
@@ -58,3 +58,8 @@ def allocate_countries(delegates):
             c += 1
 
     return output
+
+assigned = allocate_countries(delegates)
+assigned_df = pd.DataFrame(assigned, columns=["First Name", "Grade", "Section", "Committee", "Country"])
+updated_df = delegates_df.merge(assigned_df[["First Name", "Committee", "Country"]], on="First Name", how="left")
+updated_df.to_excel("Delegates_Assigned.xlsx", index=False)
