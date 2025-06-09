@@ -4,7 +4,7 @@ delegates_df = pd.read_excel("data/Delegates_Assigned.xlsx")
 delegates = []
 for _, row in delegates_df.iterrows():
     if row['Confirmed'] == True:
-        delegates.append(row['First Name'], row['Email'], row['Grade']+'-'+row['Section'], row['Committee'], row['Country'])
+        delegates.append((row['First Name'], row['Email'], row['Grade']+'-'+row['Section'], row['Committee'], row['Country']))
 
 # Now we sort by committee
 committee_list = ["DISEC", "SC", "WHO", "UNODC", "ECOSOC", "UNHRC"]
