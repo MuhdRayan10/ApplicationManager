@@ -33,12 +33,12 @@ for i, committee in enumerate(committees):
     random.shuffle(li)
     country_matrix[committee] = li
 
-delegates_df = pd.read_excel("Delegates.xlsx")
+delegates_df = pd.read_excel("data/Delegates.xlsx")
 
 delegates = {row['First Name']: (row['Grade'], row['Section'])
     for _, row in delegates_df.iterrows() if row['Confirmed']==True}
 
-def allocate_countries(delegates):
+def allocate_countries(delegates): # delegates is a dictionary containing Name: (Grade, Section)
     grade_sort = {grade: [] for grade in ['VIII', 'IX', 'X', 'XI', 'XII']}
     output = []
     for delegate, class_ in delegates.items():
@@ -62,4 +62,4 @@ def allocate_countries(delegates):
 assigned = allocate_countries(delegates)
 assigned_df = pd.DataFrame(assigned, columns=["First Name", "Grade", "Section", "Committee", "Country"])
 updated_df = delegates_df.merge(assigned_df[["First Name", "Committee", "Country"]], on="First Name", how="left")
-updated_df.to_excel("Delegates_Assigned.xlsx", index=False)
+updated_df.to_excel("data/Delegates_Assigned.xlsx", index=False)
