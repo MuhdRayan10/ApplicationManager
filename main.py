@@ -1,10 +1,19 @@
+"""
+
+AIM: To have a web interface in order to review the countless applications for Student Officers
+Be able to view all essays, certificates, and other relevant information easily for judging
+Be able to accept and reject candidates based on their submitted resumes
+
+"""
+
+
 import streamlit as st
 import pandas as pd
 
 st.set_page_config(page_title="BPSMUN'25 Review", layout="wide")
 
-input_file = "BPSMUN'25 Student Officers.xlsx"
-output_file = "BPSMUN25_Reviewed.xlsx"
+input_file = "data/BPSMUN'25 Student Officers.xlsx"
+output_file = "data/BPSMUN25_Reviewed.xlsx"
 
 @st.cache_data
 def load_data():

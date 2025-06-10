@@ -1,3 +1,7 @@
+"""
+AIM: To sort the (already assigned) delegates into their respective committees for their chairs to manage
+"""
+
 import pandas as pd
 
 delegates_df = pd.read_excel("data/Delegates_Assigned.xlsx")
